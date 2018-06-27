@@ -3,7 +3,7 @@
 
 <head>
   <meta charset="utf-8">
-  <title>Favorite Movies</title>
+  <title>GiphyNator</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
   <style type="text/css">
     button,
@@ -18,118 +18,109 @@
 
 <body>
 
-  <div class="container">
-    <h1>Travel Destinations Search</h1>
-
-    <!-- Movies will get dumped here -->
-    <div id="travels-view"></div>
-
-    <form id="travel-form">
-      <label for="travel-input">Add a destination button</label>
-      <input type="text" id="travel-input">
-
-      <!-- Button triggers new movie to be added -->
-      <input id="add-travel" type="submit" class="btn btn-secondary" value="Add a destination button">
-    </form>
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script type="text/javascript">
-
-      // Initial array of travel destinations
-      var travels = ["Paris", "Mexico", "Thialand", "Australia", "Texas"];
-      
-      function displayMovieInfo() {
+  <div class="container-fluid">
 
 
+    <div class="row" align="center">
+     
+     
+      <div class="col-md-12" align="center">
+         <h1>The GiphyNator</h1>
+        <div align="center" id="buttons-view"></div>
+      </div>
+    </div>
 
+    <div class="row">
+      <div class="col-md-12" align="center">
+        <form id="searchForm">
+          <label id="searchEntry" class="myTextBox">Search A New Topic:</label>
+          <br />
+          <input id="searchInput" type="text">
+          <button id="userInput" type="submit" class="btn btn-info">Enter</button>
+        </form>
+      </div>
 
-// Creating an AJAX call for the specific movie button being clicked
-$.ajax({
-  url: queryURL,
-  method: "GET"
-}).then(function(response) {
+    </div>
+    <!--Container Close -->
 
-  
+    <div class="row">
+      <div id="image-tag" class="col-md-12 flex-container"></div>
+    </div>
 
-  // Creating a div to hold the movie
-  var movieDiv = $("<div>");
+  </div>
 
-  // Storing the rating data
-  var rating = response.Rated;
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function () {
 
-  // Creating an element to have the rating displayed
-  var pOne = $("<p>").text("Rating: " + rating);
+      var topics = ['Babies', 'UFO', 'Train Wrecks', 'Will Ferrell', 'South Park', 'Prince', 'Cooking', 'Surfing'];
 
-  // Displaying the rating
-  movieDiv.append(pOne);
-
-
-  // Retrieving the URL for the image
-  var imgURL = response.Image;
-
-  // Creating an element to hold the image
-  var image = $("<img>").attr("src", imgURL);
-
-  // Appending the image
-  movieDiv.append(image);
-
-  // Putting the entire movie above the previous movies
-  $("#travels-view").prepend(movieDiv);
-})
-
-
-}
-
-
-      // Function for displaying travel destinations data
       function renderButtons() {
-
-        // Deleting the buttons prior to adding new buttons
-        $("#travels-view").empty();
-
-        // Looping through the array of travel destinations
-        for (var i = 0; i < travels.length; i++) {
-
-          // Then dynamicaly generating buttons for each travel destination in the array.
-          // This code $("<button>") is all jQuery needs to create the start and end tag. (<button></button>)
+        $("#buttons-view").empty();
+        for (var i = 0; i < topics.length; i++) {
           var a = $("<button>");
-          // Adding a class
-          a.addClass("btn-info btn-info");
-          // Adding a data-attribute with a value of the travel at index i
-          a.attr("data-name", travels[i]);
-          // Providing the button's text with a value of the travel at index i
-          a.text(travels[i]);
-          // Adding the button to the HTML
-          $("#travels-view").append(a);
+          a.addClass("jiffy");
+          a.attr("data-name", topics[i]);
+          a.text(topics[i]);
+          $("#buttons-view").append(a);
         }
       }
 
-      // This function handles events where one button is clicked
-      $("#add-travel").on("click", function (event) {
-        // event.preventDefault() prevents the form from trying to submit itself.
-        // We're using a form so that the user can hit enter instead of clicking the button if they want
+      $("#userInput").on("click", function (event) {
         event.preventDefault();
-
-        // This line will grab the text from the input box
-        var travel = $("#travel-input").val().trim();
-        // The movie from the textbox is then added to our array
-        travels.push(travel);
-
-        // calling renderButtons which handles the processing of our movie array
+        var interest = $("#searchInput").val();
+        if (interest == "") {
+          return false;
+        }
+        console.log(interest);
+        topics.push(interest);
         renderButtons();
+        $("#searchInput").val("");
       });
 
-      // Calling the renderButtons function at least once to display the initial list of movies
       renderButtons();
-var movie = ""
-      var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + travels + "&api_key=dc6zaTOxFJmzC&limit=10";
 
+      $(document).on("click", ".jiffy", function () {
+        $("#imgae-tag").empty();
+        var interest = $(this).attr("data-name");
+        var queryURL = "https://api.giphy.com/v1/gifs/search?q=" + interest + "&api_key=dc6zaTOxFJmzC&limit=5";
 
-$(".btn-info").on("click", function(){
-  movie = $(this).attr("data-name");
-displayMovieInfo();
-});
-    </script>
+        $.ajax({
+          url: queryURL,
+          method: "GET"
+        })
+
+          .done(function (response) {
+            var results = response.data;
+            for (var i = 0; i < results.length; i++) {
+              var newDiv = $("<div class='image-tag'>");
+              var rating = $('<p>').text('Rating: ' + results[i].rating);
+              var newImage = $('<img>');
+              newImage.attr("src", results[i].images.fixed_height_still.url);
+              newImage.attr("data-still", results[i].images.fixed_height_still.url);
+              newImage.attr("data-animate", results[i].images.fixed_height.url)
+                .attr('data-state', 'still');
+              newDiv.append(rating);
+              newDiv.append(newImage);
+              $('#image-tag').append(newDiv);
+            }
+          });
+
+        $(document).on("click", "img", function () {
+          var state = $(this).attr("data-state");
+          if (state === "still") {
+            $(this).attr("src", $(this).attr("data-animate"));
+            $(this).attr("data-state", "animate");
+          } else {
+            $(this).attr("src", $(this).attr("data-still"));
+            $(this).attr("data-state", "still");
+          }
+        });
+
+      });
+      renderButtons();
+    });
+  </script>
   </div>
 </body>
 
